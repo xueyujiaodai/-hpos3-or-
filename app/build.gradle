@@ -22,6 +22,6 @@ android {
     }
 }
 dependencies {
-    // LSPosed / Xposed API。从 LSPosed 发布包中取出 api-93.jar（或 api-82.jar）放到 app/libs/ 下
-    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+    // Xposed API 82（经典 API，LSPosed 完全兼容；运行时由框架提供，所以用 compileOnly）
+    compileOnly 'de.robv.android.xposed:api:82'
 }
