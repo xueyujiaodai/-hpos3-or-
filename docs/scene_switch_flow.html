@@ -1,0 +1,107 @@
+<html style="margin:0;padding:0;">
+<title>侧边栏场景切换机制示意</title>
+<div style="width:100%;box-sizing:border-box;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f7f8fa;padding:20px 16px;color:#1f2329;">
+  <div style="max-width:860px;margin:0 auto;">
+
+    <h1 style="font-size:22px;margin:0 0 4px;color:#1f2329;">侧边栏场景切换机制（示意）</h1>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;">手机管家 12.1.3-251205.0.1 · HyperOS 3 · 关键规则：切换必须先取消当前场景，再进入目标场景</p>
+
+    <!-- 图例 -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:14px;margin-bottom:16px;">
+      <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:4px;background:#2F80ED;display:inline-block;"></i>视频场景</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:4px;background:#EB6A2B;display:inline-block;"></i>游戏场景</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:4px;background:#6b7280;display:inline-block;"></i>存储层</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px dashed #1f2329;display:inline-block;"></i>进程内广播</span>
+    </div>
+
+    <!-- ① 场景判定 -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1f2329;margin-bottom:12px;">① 场景判定：前台应用 × 应用名单</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;">
+        <div style="flex:1 1 180px;background:#eef2f7;border:1px solid #cbd5e1;border-radius:8px;padding:10px;text-align:center;font-weight:600;">当前前台应用<br><span style="font-weight:400;color:#6b7280;font-size:13px;">E.e() 前台信息</span></div>
+        <span style="font-size:20px;color:#6b7280;">→</span>
+        <div style="flex:2 1 240px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;text-align:center;">
+          视频名单查询<br><span style="color:#2F80ED;font-size:13px;">pref_video_box_app_list 含 pkg？</span>
+        </div>
+        <div style="flex:2 1 240px;background:#FFF3EA;border:1px solid #EB6A2B;border-radius:8px;padding:10px;text-align:center;">
+          游戏名单查询<br><span style="color:#EB6A2B;font-size:13px;">gamebooster provider 含 pkg？</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:14px;margin-top:10px;">
+        <div style="flex:1 1 200px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;text-align:center;font-weight:600;">命中视频名单 → 视频场景<br><span style="font-weight:400;font-size:13px;">VideoToolBoxService 拉起视频工具箱 I3.w.m()</span></div>
+        <div style="flex:1 1 200px;background:#FFF3EA;border:1px solid #EB6A2B;border-radius:8px;padding:10px;text-align:center;font-weight:600;">命中游戏名单 → 游戏场景<br><span style="font-weight:400;font-size:13px;">GameBoosterService 拉起游戏工具箱 I.B.e0()</span></div>
+      </div>
+    </div>
+
+    <!-- ② 视频→游戏 切换序列 -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1f2329;margin-bottom:4px;">② 视频场景 → 游戏场景（核心诉求）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:13px;margin-bottom:12px;">
+        <span style="background:#EAF3FF;color:#2F80ED;border:1px solid #2F80ED;border-radius:999px;padding:2px 10px;">第一步：先取消视频场景（①–④）</span>
+        <span style="background:#FFF3EA;color:#EB6A2B;border:1px solid #EB6A2B;border-radius:999px;padding:2px 10px;">第二步：再切换游戏场景（⑤–⑥）</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:14px;align-items:stretch;">
+        <div style="flex:1 1 245px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;">
+          <b>① 退出视频工具箱</b><br><span style="font-size:13px;color:#4b5563;">I3.w.e(ctx).n()：清 boosting 标志、隐藏窗口</span>
+        </div>
+        <div style="flex:1 1 245px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;">
+          <b>② 从视频名单移除 pkg</b><br><span style="font-size:13px;color:#4b5563;">pref_video_box_app_list 写入新名单</span>
+        </div>
+        <div style="flex:1 1 245px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;">
+          <b>③ 加入视频删除名单</b><br><span style="font-size:13px;color:#4b5563;">pref_video_box_app_del_list 防默认名单回填</span>
+        </div>
+        <div style="flex:1 1 245px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;">
+          <b>④ 广播通知视频服务重载</b><br><span style="font-size:13px;color:#4b5563;">gb.action.update_video_list（进程内广播）</span>
+        </div>
+        <div style="flex:1 1 245px;background:#FFF3EA;border:1px solid #EB6A2B;border-radius:8px;padding:10px;">
+          <b>⑤ 写入游戏名单</b><br><span style="font-size:13px;color:#4b5563;">gamebooster provider 插入 flag_white=0 行，并清除手动删除标记</span>
+        </div>
+        <div style="flex:1 1 245px;background:#FFF3EA;border:1px solid #EB6A2B;border-radius:8px;padding:10px;">
+          <b>⑥ 拉起游戏工具箱</b><br><span style="font-size:13px;color:#4b5563;">gb.action.update_game_list + I.B().R(pkg)/a0(uid)/e0()</span>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#6b7280;margin-top:10px;">执行顺序严格为 ①→②→③→④→⑤→⑥：不先退出视频工具箱，两个场景会同时挂屏、下次前台变化还会再次拉起视频工具箱。</div>
+    </div>
+
+    <!-- ③ 游戏→视频 -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1f2329;margin-bottom:12px;">③ 游戏场景 → 视频场景（对称，同样先取消再切换）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:14px;align-items:stretch;">
+        <div style="flex:1 1 200px;background:#FFF3EA;border:1px solid #EB6A2B;border-radius:8px;padding:10px;">
+          <b>① 退出游戏模式</b><br><span style="font-size:13px;color:#4b5563;">I.B().g0()</span>
+        </div>
+        <div style="flex:1 1 200px;background:#FFF3EA;border:1px solid #EB6A2B;border-radius:8px;padding:10px;">
+          <b>② 游戏名单删除</b><br><span style="font-size:13px;color:#4b5563;">provider 删除 + 手动删除标记</span>
+        </div>
+        <div style="flex:1 1 200px;background:#f3f4f6;border:1px solid #9ca3af;border-radius:8px;padding:10px;">
+          <b>③ 广播重载</b><br><span style="font-size:13px;color:#4b5563;">gb.action.update_game_list</span>
+        </div>
+        <div style="flex:1 1 200px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;">
+          <b>④ 加入视频名单</b><br><span style="font-size:13px;color:#4b5563;">pref_video_box_app_list + 清删除标记</span>
+        </div>
+        <div style="flex:1 1 200px;background:#EAF3FF;border:1px solid #2F80ED;border-radius:8px;padding:10px;">
+          <b>⑤ 拉起视频工具箱</b><br><span style="font-size:13px;color:#4b5563;">gb.action.update_video_list + I3.w.m()</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 存储层 -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;">
+      <div style="font-size:15px;font-weight:700;color:#1f2329;margin-bottom:12px;">④ 存储层（名单与开关落在哪里）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:14px;align-items:stretch;">
+        <div style="flex:1 1 250px;background:#f3f4f6;border:1px solid #9ca3af;border-radius:8px;padding:10px;">
+          <b>安全中心偏好 provider</b><br><span style="font-size:13px;color:#4b5563;">content://com.miui.securitycenter.remoteprovider<br>· pref_video_box_app_list（视频名单）<br>· pref_video_box_app_del_list（删除名单）<br>· pref_manually_delete_game_list（游戏手动删除）</span>
+        </div>
+        <div style="flex:1 1 250px;background:#f3f4f6;border:1px solid #9ca3af;border-radius:8px;padding:10px;">
+          <b>游戏名单 provider</b><br><span style="font-size:13px;color:#4b5563;">content://com.miui.securitycenter.gamebooster/gamebooster<br>· 每个游戏一行（app_name / package_name / package_uid / flag_white=0 / 各项 settings_*）</span>
+        </div>
+        <div style="flex:1 1 250px;background:#f3f4f6;border:1px solid #9ca3af;border-radius:8px;padding:10px;">
+          <b>Settings.Secure</b><br><span style="font-size:13px;color:#4b5563;">· pref_videobox_switch_status（视频总开关）<br>· pref_open_game_booster（游戏总开关）<br>· gb_boosting / vtb_boosting（场景驻留标志）</span>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#6b7280;margin-top:10px;">名单变更通知走进程内广播（发送器为混淆类 P.a，即包 P 下的类 a）；模块注入 remote 子进程后可直接复用该通道，也可回退 androidx LocalBroadcastManager。</div>
+    </div>
+
+  </div>
+</div>
+</html>
