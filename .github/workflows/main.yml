@@ -1,0 +1,43 @@
+name: Build LspSidebarSwitch
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Prepare LSPosed API jar
+        run: |
+          mkdir -p app/libs
+          if [ ! -f app/libs/api-93.jar ];then
+            curl -L -o app/libs/api-93.jar https://github.com/LSPosed/LSPosed/releases/latest/download/api-93.jar
+          fi
+          ls app/libs
+
+      - name: Build APK
+        run: ./gradlew assembleDebug assembleRelease
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-APKs
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
