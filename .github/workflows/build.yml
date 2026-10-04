@@ -20,14 +20,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Prepare LSPosed API jar
-        run: |
-          mkdir -p app/libs
-          if [ ! -f app/libs/api-93.jar ];then
-            curl -L -o app/libs/api-93.jar https://github.com/LSPosed/LSPosed/releases/latest/download/api-93.jar
-          fi
-          ls app/libs
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
