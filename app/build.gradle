@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.lsp.sidebar.switch'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.lsp.sidebar.switch"
+        minSdk 28
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    // LSPosed / Xposed API。从 LSPosed 发布包中取出 api-93.jar（或 api-82.jar）放到 app/libs/ 下
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+}
